@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #1B3C53;
+    --primary-light: #234C6A;
+    --secondary: #456882;
+    --lightgray: #E3E3E3;
+  }
+  
+  body {
+    @apply bg-lightgray text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  /* Card styles */
+  .card {
+    @apply bg-white rounded-lg shadow-md p-4 border border-gray-200;
+  }
+  
+  .card-dark {
+    @apply bg-secondary text-white rounded-lg shadow-md p-4;
+  }
+  
+  /* Status indicators */
+  .status-dot {
+    @apply w-3 h-3 rounded-full inline-block;
+  }
+  
+  /* Button variants */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-md transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary hover:bg-primary-light text-white font-semibold py-2 px-4 rounded-md transition-colors;
+  }
+  
+  /* Chart containers */
+  .chart-container {
+    @apply w-full h-64 md:h-80;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+

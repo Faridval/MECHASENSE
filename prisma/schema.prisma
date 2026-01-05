@@ -1,0 +1,113 @@
+// Mechasense Database Schema
+// IoT Monitoring & Predictive Maintenance for AC Motors
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// Motor: Represents an AC motor being monitored
+model Motor {
+  id             String   @id @default(cuid())
+  name           String   // e.g., "Motor Utama Lantai 2"
+  location       String   // e.g., "Workshop Area A"
+  ratedPower     Float    // kW
+  ratedCurrent   Float    // Ampere
+  ratedVoltage   Float    // Volt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  sensorReadings  SensorReading[]
+  healthAnalyses  HealthAnalysis[]
+  alerts          Alert[]
+}
+
+// SensorReading: Time-series data from all 5 sensors
+model SensorReading {
+  id        String   @id @default(cuid())
+  motorId   String
+  timestamp DateTime @default(now())
+  
+  // PZEM-004T Wattmeter data
+  gridVoltage      Float   // Volt
+  motorCurrent     Float   // Ampere
+  powerConsumption Float   // Watt
+  powerFactor      Float   // 0-1
+  dailyEnergyKwh   Float   // kWh
+  gridFrequency    Float   // Hz
+  
+  // MPU6050 Gyroscope/Accelerometer (vibration analysis)
+  vibrationRms         Float   // mm/s RMS
+  faultFrequency       Float?  // Hz (dominant fault frequency)
+  rotorUnbalanceScore  Float   // 0-100%
+  bearingHealthScore   Float   // 0-100%
+  
+  // MLX90614 IR Temperature Sensor
+  motorSurfaceTemp     Float   // °C
+  thermalAnomalyIndex  Float?  // 0-100 (optional computed index)
+  panelTemp            Float?  // °C (optional, for solar panel if any)
+  
+  // DS18B20 Waterproof Temperature (bearing)
+  bearingTemp          Float   // °C
+  
+  // GP2Y1010 Optical Dust Sensor
+  dustDensity          Float   // µg/m³
+  soilingLossPercent   Float   // % efficiency loss due to dust
+  
+  // Raw payload from ESP for debugging
+  rawPayload           String? // JSON string
+  
+  motor Motor @relation(fields: [motorId], references: [id], onDelete: Cascade)
+  
+  @@index([motorId, timestamp])
+  @@index([timestamp])
+}
+
+// HealthAnalysis: ML prediction + Expert System diagnosis
+model HealthAnalysis {
+  id                    String   @id @default(cuid())
+  motorId               String
+  timestamp             DateTime @default(now())
+  
+  // ML Model Output
+  healthScoreMl         Float    // 0-100 (from ML model)
+  healthCategory        String   // "Healthy", "At Risk", "Critical"
+  
+  // Expert System Output
+  expertDiagnosis       String?  // Text diagnosis
+  expertRecommendation  String?  // Recommended actions
+  rawRulesMatched       String?  // JSON array of matched rules
+  
+  createdAt             DateTime @default(now())
+  
+  motor Motor @relation(fields: [motorId], references: [id], onDelete: Cascade)
+  
+  @@index([motorId, timestamp])
+}
+
+// Alert: Automated alerts when thresholds are breached
+model Alert {
+  id        String   @id @default(cuid())
+  motorId   String
+  timestamp DateTime @default(now())
+  
+  severity  String   // "WARNING", "CRITICAL"
+  parameter String   // e.g., "gridVoltage", "motorCurrent"
+  value     Float    // The value that triggered alert
+  message   String   // Human-readable message
+  status    String   @default("OPEN") // "OPEN", "CLOSED", "ACKNOWLEDGED"
+  
+  closedAt  DateTime?
+  
+  motor Motor @relation(fields: [motorId], references: [id], onDelete: Cascade)
+  
+  @@index([motorId, status, timestamp])
+  @@index([status])
+}
+

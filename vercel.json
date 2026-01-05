@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/ml/predict",
+      "destination": "/ml-api/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/app/$1"
+    }
+  ]
+}
